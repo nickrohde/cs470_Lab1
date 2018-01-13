@@ -1,5 +1,5 @@
 #include <iostream>
-#include <string>
+#include <string.h>
 #include <vector>
 #include <sstream>
 #include <algorithm>
@@ -10,6 +10,12 @@
 #include <fstream>
 
 
+// Defines:
+#ifndef INT_MAX
+#define INT_MAX 0x7FFFFFFF
+#endif
+
+// Namespace:
 using namespace std;
 
 // Prototypes:
@@ -30,6 +36,7 @@ void insertHomePath(string*);
 void printError(string, int, int);
 void printArgError(string, string, string);
 void setHomeDirectoryPath();
+void fixPaths(string *s_path);
 
 int executeCommand(vector<string>&); // helper method
 int executeCommand(string&);
@@ -404,7 +411,7 @@ int executeCommand(string &s_cmdName)
 
 	else if (s_cmdName == "ls")
 	{
-		/*pid_t pid = fork();
+		pid_t pid = fork();
 		
 		if(pid > 0)
 		{
@@ -414,7 +421,7 @@ int executeCommand(string &s_cmdName)
 		{
 			execl("/bin/ls","ls", NULL);
 			exit(0);
-		}// end elif*/
+		}// end elif
 	} // end elif
 
 	return i_exitCode;
@@ -428,6 +435,8 @@ int executeCommand(string &s_cmdName, string &s_arg1)
 
 	stringstream stream(s_arg1);
 
+
+	fixPaths(&s_arg1); // in case user put ~/...
 
 	if (s_cmdName == "exit")
 	{		
@@ -444,7 +453,7 @@ int executeCommand(string &s_cmdName, string &s_arg1)
 
 	else if (s_cmdName == "tail")
 	{
-		/*pid_t pid = fork();
+		pid_t pid = fork();
 		
 		if(pid > 0)
 		{
@@ -455,14 +464,12 @@ int executeCommand(string &s_cmdName, string &s_arg1)
 			cout << endl << execl("/usr/bin/tail","tail", s_arg1.c_str() , "-n 5", (char *)0);
 			cout << endl;
 			exit(0);
-		}// end elif*/
-
-		// call tail with arg1 and temp
+		}// end elif
 	} // end elif
 
 	else if (s_cmdName == "cat")
 	{
-		/*pid_t pid = fork();
+		pid_t pid = fork();
 		
 		if(pid > 0)
 		{
@@ -472,9 +479,7 @@ int executeCommand(string &s_cmdName, string &s_arg1)
 		{
 			execl("/bin/cat","cat", s_arg1.c_str(), (char *)0);
 			exit(0);
-		}// end elif*/
-		
-		// call cat with arg1
+		}// end elif
 	} // end elif
 
 	return i_exitCode;
@@ -489,6 +494,9 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 	stringstream stream(s_arg2);
 
 
+	fixPaths(&s_arg1); // in case user put ~/...
+	fixPaths(&s_arg2); // in case user put ~/...
+
 	if (s_cmdName == "mv")
 	{	
 		// Variables:
@@ -499,8 +507,7 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 		{
 			// Variables:
 			string s_input = askUserToVerifyDelete(s_arg2);
-
-
+			
 			if(s_input == "y")
 			{	
 				cout << "The file " << s_arg2 << " will be overwritten with the contents of " << s_arg1 << "." << endl;
@@ -513,7 +520,7 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 		} // end if
 		if(overwriteFile)
 		{
-			/*pid_t pid = fork();
+			pid_t pid = fork();
 		
 			if(pid > 0)
 			{
@@ -523,7 +530,7 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 			{
 				execl("/bin/mv","mv", s_arg1.c_str(), s_arg2.c_str(), NULL);
 				exit(0);
-			} // end elif*/
+			} // end elif
 		} // end if
 	} // end if (s_cmdName == "mv")
 
@@ -535,7 +542,7 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 
 		if (stream >> temp && temp > 0)
 		{
-			/*pid_t pid = fork();
+			pid_t pid = fork();
 		
 			if(pid > 0)
 			{
@@ -545,7 +552,7 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 			{
 				execl("/usr/bin/tail","tail", s_arg1.c_str(), ("-n " + s_arg2).c_str(), (char*)0);
 				exit(0);
-			}// end elif*/
+			}// end elif
 		} // end if
 		else
 		{
@@ -555,7 +562,7 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 
 	else if (s_cmdName == "cmp")
 	{
-		/*pid_t pid = fork();
+		pid_t pid = fork();
 		
 		if(pid > 0)
 		{
@@ -565,7 +572,7 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 		{
 			execl("/usr/bin/cmp","cmp", s_arg1.c_str(), s_arg2.c_str(), NULL);
 			exit(0);
-		}// end elif*/
+		}// end elif
 		// call cmp with arg1 and arg2
 	} // end elif
 
@@ -629,7 +636,7 @@ void insertHomePath(string* s_path)
 
 	stream << homeDirectory;
 
-	stream << s_path->substr(1, strlen(s_path->c_str)); // remove the ~ from the path
+	stream << s_path->substr(1, strlen(s_path->c_str())-1); // remove the ~ from the path
 	
 	*s_path = string(stream.str());
 } // end method insertHomePath
