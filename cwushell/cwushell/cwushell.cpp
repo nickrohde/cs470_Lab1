@@ -3,45 +3,43 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
-#include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <fstream>
 
 
-// Defines:
-#ifndef INT_MAX
-#define INT_MAX 0x7FFFFFFF
-#endif
-
-// Namespace:
 using namespace std;
 
 // Prototypes:
-string waitForCommand();
+string waitForCommand(void); // gets user input
+
 string askUserToVerifyDelete(string);
 
-vector<string> vectorizeCommand(string);
+vector<string> vectorizeCommand(string); // turns cmd string into a vector of args
 
-bool isCommandValid(vector<string>&);
-bool doesFileExist(string&);
-bool containsHomePath(string* s_path);
+bool isCommandValid(vector<string>&); // checks if the command is valid
 
-void printHello();
-void printPrompt();
-void printHelp();
-void printSpecificHelp(string);
-void insertHomePath(string*);
-void printError(string, int, int);
-void printArgError(string, string, string);
-void setHomeDirectoryPath();
-void fixPaths(string *s_path);
+bool doesFileExist(string&); // checks if the file with given name exists
 
-int executeCommand(vector<string>&); // helper method
-int executeCommand(string&);
-int executeCommand(string&, string&);
-int executeCommand(string&, string&, string&);
+bool containsHomePath(string* s_path); // checks if the given path contains home (~)
+
+void printHello(void); // prints basic instructions
+void printPrompt(void); // prints the command prompt
+void printHelp(void); // prints the help for all commands
+void printSpecificHelp(string); // prints the help for the given command
+
+void printError(string, int, int); // prints error for invalid command
+void printArgError(string, string, string); // prints error for invalid arguments for command
+
+void setHomeDirectoryPath(void); // gets the path of home directory from system
+void fixPaths(string *s_path); // fixes the given path by inserting home path if needed
+void insertHomePath(string*); // replaces ~ with home path 
+
+int executeCommand(vector<string>&); // execute helper method
+int executeCommand(string&); // executes no arg commands
+int executeCommand(string&, string&); // executes 1 arg commands
+int executeCommand(string&, string&, string&); // executes 2 arg commands
 
 
 
@@ -87,7 +85,7 @@ int main(int argc, char* argv[])
 } // end method main
 
 // Prints an initial introduction to the program
-void printHello()
+void printHello(void)
 {
 	cout << "Welcome to CWU Shell." << endl;
 	cout << "Enter the command --h, or --help for information about the commands." << endl;
@@ -95,13 +93,13 @@ void printHello()
 } // end method printHello
 
 // Prints the prompt for the user to enter a command
-void printPrompt()
+void printPrompt(void)
 {
 	cout << "cwushell> ";
 } // end method printPrompt
 
 // waits for the user to enter the next command
-string waitForCommand()
+string waitForCommand(void)
 {
 	// Variables:
 	string s_cmd = "";
@@ -286,7 +284,7 @@ void printArgError(string s_cmdName, string s_expected, string s_received)
 } // end method printArgError
 
 // Prints the help menu to the console
-void printHelp()
+void printHelp(void)
 {
 	cout << endl << "Help: " << endl;
 	cout << "command name <arguments>    -- description of command" << endl << endl;
@@ -507,9 +505,10 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 		{
 			// Variables:
 			string s_input = askUserToVerifyDelete(s_arg2);
-			
+
+
 			if(s_input == "y")
-			{	
+			{
 				cout << "The file " << s_arg2 << " will be overwritten with the contents of " << s_arg1 << "." << endl;
 			} // end if
 			else
@@ -573,7 +572,6 @@ int executeCommand(string &s_cmdName, string &s_arg1, string &s_arg2)
 			execl("/usr/bin/cmp","cmp", s_arg1.c_str(), s_arg2.c_str(), NULL);
 			exit(0);
 		}// end elif
-		// call cmp with arg1 and arg2
 	} // end elif
 
 	return i_exitCode;
@@ -608,13 +606,14 @@ string askUserToVerifyDelete(string s_fileName)
 	while (s_input != "y" && s_input != "n")
 	{
 		cout << endl << "The file " << s_fileName << " already exists. Do you want to overwrite it? (y/n)";
-		cin >> s_input;
+		getline(cin, s_input);
 		std::transform(s_input.begin(), s_input.end(), s_input.begin(), ::tolower);
 	} // end while
 
 	return s_input;
 } // end method askUserToVerifyDelete
 
+// checks if a home path must be added to given path
 void fixPaths(string *s_path)
 {
 	if (containsHomePath(s_path))
@@ -642,7 +641,7 @@ void insertHomePath(string* s_path)
 } // end method insertHomePath
 
 // Sets the home directory path global variable
-void setHomeDirectoryPath()
+void setHomeDirectoryPath(void)
 {
 	const char* temp;
 
